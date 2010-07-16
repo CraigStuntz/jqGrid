@@ -232,6 +232,7 @@ function info_dialog(caption, content,c_b, modalopt) {
 		function(){jQuery(this).addClass('ui-state-hover');}, 
 		function(){jQuery(this).removeClass('ui-state-hover');}
 	);
+	if(jQuery.isFunction(mopt.beforeOpen) ) mopt.beforeOpen();
 	viewModal("#info_dialog",{
 		onHide: function(h) {
 			h.w.hide().remove();
@@ -240,6 +241,7 @@ function info_dialog(caption, content,c_b, modalopt) {
 		modal :mopt.modal,
 		jqm:jm
 	});
+	if(jQuery.isFunction(mopt.afterOpen) ) mopt.afterOpen();
 	try{$("#info_dialog").focus();} catch (e){}
 }
 // Form Functions
@@ -318,7 +320,8 @@ function createEl(eltype,options,vl,autowidth, ajaxso) {
 				jQuery.ajax(jQuery.extend({
 					url: options.dataUrl,
 					type : "GET",
-					complete: function(data,status){
+					dataType: "html",
+					success: function(data,status){
 						try {delete options.dataUrl; delete options.value;} catch (e){}
 						var a;
 						if(typeof(options.buildSelect) != "undefined") {
@@ -326,7 +329,7 @@ function createEl(eltype,options,vl,autowidth, ajaxso) {
 							a = jQuery(b).html();
 							delete options.buildSelect;
 						} else {
-							a = jQuery(data.responseText).html();
+							a = jQuery(data).html();
 						}
 						if(a) {
 							jQuery(elem).append(a);
@@ -436,7 +439,7 @@ function createEl(eltype,options,vl,autowidth, ajaxso) {
 			} catch (e) {
 				if (e=="e1") { info_dialog(jQuery.jgrid.errors.errcap,"function 'custom_element' "+jQuery.jgrid.edit.msg.nodefined, jQuery.jgrid.edit.bClose);}
 				if (e=="e2") { info_dialog(jQuery.jgrid.errors.errcap,"function 'custom_element' "+jQuery.jgrid.edit.msg.novalue,jQuery.jgrid.edit.bClose);}
-				else { info_dialog(jQuery.jgrid.errors.errcap,e.message,jQuery.jgrid.edit.bClose); }
+				else { info_dialog(jQuery.jgrid.errors.errcap,typeof(e)==="string"?e:e.message,jQuery.jgrid.edit.bClose); }				
 			}
 			break;
 	}
@@ -520,7 +523,7 @@ function checkDate (format, date) {
 
 function isEmpty(val)
 {
-	if (val.match(/^s+$/) || val == "")	{
+	if (val.match(/^\s+$/) || val == "")	{
 		return true;
 	} else {
 		return false;
@@ -548,7 +551,7 @@ function checkTime(time){
 	return true;
 }
 function checkValues(val, valref,g) {
-	var edtrul,i, nm;
+	var edtrul,i, nm, dft;
 	if(typeof(valref)=='string'){
 		for( i =0, len=g.p.colModel.length;i<len; i++){
 			if(g.p.colModel[i].name==valref) {
@@ -564,7 +567,7 @@ function checkValues(val, valref,g) {
 	if(edtrul) {
 		if(!nm) { nm = g.p.colNames[valref]; }
 		if(edtrul.required === true) {
-			if( val.match(/^s+$/) || val == "" )  { return [false,nm+": "+jQuery.jgrid.edit.msg.required,""]; }
+			if( isEmpty(val) )  { return [false,nm+": "+jQuery.jgrid.edit.msg.required,""]; }
 		}
 		// force required
 		var rqfield = edtrul.required === false ? false : true;
@@ -595,7 +598,11 @@ function checkValues(val, valref,g) {
 		}
 		if(edtrul.date === true) {
 			if( !(rqfield === false && isEmpty(val)) ) {
-				var dft = g.p.colModel[valref].datefmt || "Y-m-d";
+				if(g.p.colModel[valref].formatoptions && g.p.colModel[valref].formatoptions.newformat) {
+					dft = g.p.colModel[valref].formatoptions.newformat;
+				} else {
+					dft = g.p.colModel[valref].datefmt || "Y-m-d";
+				}
 				if(!checkDate (dft, val)) { return [false,nm+": "+jQuery.jgrid.edit.msg.date+" - "+dft,""]; }
 			}
 		}
