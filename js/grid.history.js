@@ -1,4 +1,13 @@
-﻿(function ($) {
+﻿﻿/*
+**
+* jqGrid (http://trirand.com/blog/) integration with jquery.bbq library (http://benalman.com/projects/jquery-bbq-plugin/)
+* by Craig Stuntz (http://blogs.teamb.com/craigstuntz/)
+* 
+* Dual licensed under the MIT and GPL licenses:
+* http://www.opensource.org/licenses/mit-license.php
+* http://www.gnu.org/licenses/gpl-2.0.html
+**/ 
+(function ($) {
     $.jgrid.history = {
         // global options -- you can overwrite these elsewhere, if need be, before calling $().jqGridHistory
         getPropertyValue: function (gridOptions, name, historyOptions) {
