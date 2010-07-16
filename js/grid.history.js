@@ -1,16 +1,7 @@
-﻿/*
-**
-* jqGrid (http://trirand.com/blog/) integration with jquery.bbq library (http://benalman.com/projects/jquery-bbq-plugin/)
-* by Craig Stuntz (http://blogs.teamb.com/craigstuntz/)
-* 
-* Dual licensed under the MIT and GPL licenses:
-* http://www.opensource.org/licenses/mit-license.php
-* http://www.gnu.org/licenses/gpl-2.0.html
-**/ 
-(function($) {
+﻿(function ($) {
     $.jgrid.history = {
         // global options -- you can overwrite these elsewhere, if need be, before calling $().jqGridHistory
-        getPropertyValue: function(gridOptions, name, historyOptions) {
+        getPropertyValue: function (gridOptions, name, historyOptions) {
             var nameFragments = name.split('.');
             if (nameFragments.length === 1) {
                 return gridOptions[name];
@@ -22,7 +13,7 @@
         // this is the GLOBAL prefix. There is also a per-grid prefix in options.history.hashPrefix
         globalHashPrefix: "",
         // compute name of hashName for URI -- result will be the "rowNum" part of http://site/Foo#rowNum=20
-        hashPrefix: function(historyOptions, propertyName) {
+        hashPrefix: function (historyOptions, propertyName) {
             return (historyOptions.hashPrefix || this.globalHashPrefix) + propertyName;
         },
         jqGridInternalDefaults: {
@@ -36,7 +27,7 @@
         persist: ["page", "rowNum", "sortname", "sortorder"], // options to store in hash
         // change gridOptions[name] to value. Replace this to customize assignment when it's not a direct mapping.
         // historyOptions are for reference only; the method should only change gridOptions
-        setPropertyValue: function(gridOptions, name, value, historyOptions) {
+        setPropertyValue: function (gridOptions, name, value, historyOptions) {
             var nameFragments = name.split('.');
             if (nameFragments.length === 1) {
                 gridOptions[name] = value;
@@ -49,15 +40,15 @@
             }
         }
     };
-    var fixPager = function(grid, rowNum) {
+    var fixPager = function (grid, rowNum) {
         // work around grid bug where setting rowNum in options doesn't update combo
         var pager = grid.getGridParam("pager");
         if (pager) {
             pager.find(".ui-pg-selbox").children("[value=" + rowNum + "]").attr("selected", "true");
         }
     };
-    var createHashChangeHandler = function(gridSelector) {
-        return function(event) {
+    var createHashChangeHandler = function (gridSelector) {
+        return function (event) {
             var grid = $(gridSelector);
             var gridOptions = grid.getGridParam();
             var history = gridOptions.history;
@@ -83,17 +74,19 @@
             }
         };
     };
-    var gridCompleteSetHash = function() {
-        var hashPrefix = this.history.hashPrefix || "";
-        var hash = this.history.bbq.getState();
+    var gridCompleteSetHash = function () {
+        var p = this.p || this; // "this" changed in jqGrid 3.7; I want to support 3.6 and 3.7.
+        var history = p.history;
+        var hashPrefix = history.hashPrefix || "";
+        var hash = history.bbq.getState();
         var currentHashIsEmpty = !window.location.hash;
         var currentHashHasGridHistory = false;
         var changedHash = false;
         var globalOpts = $.jgrid.history;
-        for (var i = 0; i < this.history.persist.length; i++) {
-            var propertyName = this.history.persist[i];
-            var val = globalOpts.getPropertyValue(this, propertyName, this.history);
-            var currentValIsDefault = val == this.history.defaults[propertyName];
+        for (var i = 0; i < history.persist.length; i++) {
+            var propertyName = history.persist[i];
+            var val = globalOpts.getPropertyValue(p, propertyName, history);
+            var currentValIsDefault = val == history.defaults[propertyName];
             if (currentValIsDefault) {
                 if (hash[hashPrefix + propertyName]) {
                     delete hash[hashPrefix + propertyName];
@@ -108,10 +101,10 @@
             }
         }
         if (changedHash) {
-            this.history.bbq.pushState(hash, 2);
+            history.bbq.pushState(hash, 2);
         }
     };
-    $.fn.jqGridHistory = function(options) {
+    var optionsWithHistory = function (options) {
         var defaults = $.extend($.jgrid.history.jqGridInternalDefaults, $.jgrid.defaults, options);
         var newOptions = {};
         newOptions.history = options.history || {};
@@ -133,7 +126,7 @@
         };
         if (options.gridComplete) {
             var originalGridComplete = options.gridComplete;
-            newOptions.gridComplete = function() {
+            newOptions.gridComplete = function () {
                 // first call passed gridComplete
                 originalGridComplete.apply(this, arguments);
                 // then "our" gridComplete
@@ -143,7 +136,11 @@
         else {
             newOptions.gridComplete = gridCompleteSetHash;
         }
-        newOptions = $.extend(true, options, newOptions);
+        return $.extend(true, options, newOptions);
+    };
+
+    $.fn.jqGridHistory = function (options) {
+        var newOptions = optionsWithHistory(options);
         var hashChangeHandler = createHashChangeHandler(this);
         $(window).bind('hashchange', hashChangeHandler);
         return this.jqGrid(newOptions);
