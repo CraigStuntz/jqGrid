@@ -53,7 +53,7 @@
         // work around grid bug where setting rowNum in options doesn't update combo
         var pager = grid.getGridParam("pager");
         if (pager) {
-            pager.find(".ui-pg-selbox").children("[value=" + rowNum + "]").attr("selected", "true");
+            $(pager).find(".ui-pg-selbox").children("[value=" + rowNum + "]").attr("selected", "true");
         }
     };
     var createHashChangeHandler = function (gridSelector) {
