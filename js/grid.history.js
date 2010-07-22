@@ -149,7 +149,7 @@
     };
 
     $.fn.jqGridHistory = function (options) {
-        var newOptions = optionsWithHistory(options);
+        var newOptions = optionsWithHistory.call(this, options);
         var hashChangeHandler = createHashChangeHandler(this);
         $(window).bind('hashchange', hashChangeHandler);
         return this.jqGrid(newOptions);
