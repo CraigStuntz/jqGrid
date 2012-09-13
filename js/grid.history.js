@@ -54,6 +54,11 @@
         var pager = grid.getGridParam("pager");
         if (pager) {
             $(pager).find(".ui-pg-selbox").children("[value=" + rowNum + "]").attr("selected", "true");
+
+            //see if there is a top pager which also needs updating.
+            if (grid.getGridParam("toppager")) {
+                $('#'+ $(grid).attr('id') + "_toppager").find(".ui-pg-selbox").children("[value=" + rowNum + "]").attr("selected", "true");
+            }
         }
     };
     var createHashChangeHandler = function (gridSelector) {
